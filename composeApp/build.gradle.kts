@@ -70,7 +70,7 @@ kotlin {
 compose.desktop {
     application {
         mainClass = "com.combat.nomm.MainKt"
-        
+
         
         nativeDistributions {
 

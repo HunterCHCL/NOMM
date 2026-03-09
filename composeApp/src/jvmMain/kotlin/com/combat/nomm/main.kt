@@ -59,6 +59,7 @@ fun WindowButton(
 @OptIn(ExperimentalComposeUiApi::class)
 fun main() = application {
     SevenZip.initSevenZipFromPlatformJAR()
+    
     val windowState = rememberWindowState()
 
     val isJbrDecorSupported = remember {
@@ -72,6 +73,8 @@ fun main() = application {
     Window(
         onCloseRequest = ::exitApplication,
         state = windowState,
+        title = "Nuclear Option Mod Manager",
+        icon = painterResource(Res.drawable.iconpng),
         undecorated = false,
         resizable = true
     ) {
