@@ -26,16 +26,11 @@ import com.materialkolor.Contrast
 import com.materialkolor.PaletteStyle
 import io.github.vinceglb.filekit.FileKit
 import io.github.vinceglb.filekit.dialogs.openDirectoryPicker
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.awt.Desktop
 import java.io.File
 import kotlin.time.Duration.Companion.milliseconds
-
-private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
 @Composable
 fun SettingsScreen() {
@@ -61,7 +56,7 @@ fun SettingsScreen() {
                 )
                 SettingsInfoRow(
                     infoName = "Version",
-                    infoData = "3.0.0"
+                    infoData = BuildKonfig.VERSION
                 )
                 ClickableSettingsRow(
                     "GitHub",

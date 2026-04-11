@@ -12,6 +12,7 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material3.*
+import androidx.compose.material3.TooltipAnchorPosition
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -326,35 +327,65 @@ fun ModActions(
                 }
 
                 if (modMeta.hasUpdate) {
+                    TooltipBox(
+                        positionProvider = TooltipDefaults.rememberTooltipPositionProvider(
+                            TooltipAnchorPosition.Above
+                        ),
+                        state = rememberTooltipState(),
+                        tooltip = {
+                            PlainTooltip(
+                                containerColor = MaterialTheme.colorScheme.primaryContainer,
+                                contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                            ) {
+                                Text("Update Available", style = MaterialTheme.typography.labelMedium)
+                            }
+                        }
+                    ) {
+                        IconButton(
+                            onClick = { modMeta.update() },
+                            modifier = Modifier
+                                .size(controlSize)
+                                .clip(CircleShape).clipToBounds()
+                                .pointerHoverIcon(PointerIcon.Hand)
+                        ) {
+                            Icon(
+                                painterResource(Res.drawable.refresh_24px),
+                                contentDescription = "Update",
+                                modifier = Modifier.size(iconSize),
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                        }
+                    }
+                }
+
+                TooltipBox(
+                    positionProvider = TooltipDefaults.rememberTooltipPositionProvider(
+                        TooltipAnchorPosition.Above
+                    ),
+                    state = rememberTooltipState(),
+                    tooltip = {
+                        PlainTooltip(
+                            containerColor = MaterialTheme.colorScheme.errorContainer,
+                            contentColor = MaterialTheme.colorScheme.onErrorContainer
+                        ) {
+                            Text("Uninstall", style = MaterialTheme.typography.labelMedium)
+                        }
+                    }
+                ) {
                     IconButton(
-                        onClick = { modMeta.update() },
+                        onClick = { modMeta.uninstall() },
                         modifier = Modifier
                             .size(controlSize)
                             .clip(CircleShape).clipToBounds()
                             .pointerHoverIcon(PointerIcon.Hand)
                     ) {
                         Icon(
-                            painterResource(Res.drawable.refresh_24px),
-                            contentDescription = "Update",
+                            painterResource(Res.drawable.delete_24px),
+                            contentDescription = null,
                             modifier = Modifier.size(iconSize),
-                            tint = MaterialTheme.colorScheme.primary
+                            tint = MaterialTheme.colorScheme.error
                         )
                     }
-                }
-
-                IconButton(
-                    onClick = { modMeta.uninstall() },
-                    modifier = Modifier
-                        .size(controlSize)
-                        .clip(CircleShape).clipToBounds()
-                        .pointerHoverIcon(PointerIcon.Hand)
-                ) {
-                    Icon(
-                        painterResource(Res.drawable.delete_24px),
-                        contentDescription = null,
-                        modifier = Modifier.size(iconSize),
-                        tint = MaterialTheme.colorScheme.error
-                    )
                 }
 
                 Switch(
@@ -366,23 +397,38 @@ fun ModActions(
                 )
             }
             else -> {
-                IconButton(
-                    onClick = {
-                        mod.artifacts.maxByOrNull { it.version }?.let { latest ->
-                            if (mod.real) RepoMods.installMod(mod.id, latest.version)
+                TooltipBox(
+                    positionProvider = TooltipDefaults.rememberTooltipPositionProvider(
+                        TooltipAnchorPosition.Above
+                    ),
+                    state = rememberTooltipState(),
+                    tooltip = {
+                        PlainTooltip(
+                            containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                            contentColor = MaterialTheme.colorScheme.onSecondaryContainer
+                        ) {
+                            Text("Install", style = MaterialTheme.typography.labelMedium)
                         }
-                    },
-                    modifier = Modifier
-                        .size(controlSize)
-                        .clip(CircleShape).clipToBounds()
-                        .pointerHoverIcon(PointerIcon.Hand)
+                    }
                 ) {
-                    Icon(
-                        painterResource(Res.drawable.download_24px),
-                        contentDescription = "Install",
-                        modifier = Modifier.size(iconSize),
-                        tint = MaterialTheme.colorScheme.primary
-                    )
+                    IconButton(
+                        onClick = {
+                            mod.artifacts.maxByOrNull { it.version }?.let { latest ->
+                                if (mod.real) RepoMods.installMod(mod.id, latest.version)
+                            }
+                        },
+                        modifier = Modifier
+                            .size(controlSize)
+                            .clip(CircleShape).clipToBounds()
+                            .pointerHoverIcon(PointerIcon.Hand)
+                    ) {
+                        Icon(
+                            painterResource(Res.drawable.download_24px),
+                            contentDescription = "Install",
+                            modifier = Modifier.size(iconSize),
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                    }
                 }
             }
         }
@@ -536,6 +582,7 @@ fun ModDetailsContent(mod: Extension) {
     }
 }
 
+
 @Composable
 fun ModVersionsContent(
     mod: Extension,
@@ -597,6 +644,7 @@ fun ModVersionsContent(
 }
 
 @Composable
+@OptIn(ExperimentalMaterial3Api::class)
 fun ArtifactCard(
     artifact: Artifact,
     isInstalled: Boolean,
@@ -652,33 +700,87 @@ fun ArtifactCard(
                 Column(
                     verticalArrangement = Arrangement.spacedBy(8.dp), horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    IconButton(
-                        onClick = onInstall, enabled = !isInstalled , modifier = Modifier.size(40.dp).clip(CircleShape).clipToBounds().pointerHoverIcon(if (!isInstalled) PointerIcon.Hand else PointerIcon.Default)
-                    ) {
-                        Icon(
-                            painter = if (isInstalled) painterResource(Res.drawable.check_24px) else painterResource(Res.drawable.download_24px),
-                            contentDescription = "Install",
-                            modifier = Modifier.size(24.dp),
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
+                    if (!isInstalled) {
+                        TooltipBox(
+                            positionProvider = TooltipDefaults.rememberTooltipPositionProvider(
+                                TooltipAnchorPosition.Above
+                            ),
+                            state = rememberTooltipState(),
+                            tooltip = {
+                                PlainTooltip(
+                                    containerColor = MaterialTheme.colorScheme.primaryContainer,
+                                    contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                                ) {
+                                    Text(
+                                        text = "Install",
+                                        style = MaterialTheme.typography.labelMedium
+                                    )
+                                }
+                            }
+                        ) {
+                            IconButton(
+                                onClick = onInstall,
+                                modifier = Modifier.size(40.dp).clip(CircleShape).clipToBounds()
+                                    .pointerHoverIcon(PointerIcon.Hand)
+                            ) {
+                                Icon(
+                                    painter = painterResource(Res.drawable.download_24px),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(24.dp),
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                            }
+                        }
+                    } else {
+                        IconButton(
+                            onClick = {},
+                            enabled = false,
+                            modifier = Modifier.size(40.dp)
+                        ) {
+                            Icon(
+                                painter = painterResource(Res.drawable.check_24px),
+                                contentDescription = null,
+                                modifier = Modifier.size(24.dp),
+                                tint = MaterialTheme.colorScheme.primary,
+                            )
+                        }
                     }
 
-                    IconButton(
-                        onClick = onViewDependencies, modifier = Modifier.size(40.dp).clip(CircleShape).clipToBounds().pointerHoverIcon(PointerIcon.Hand)
+                    TooltipBox(
+                        positionProvider = TooltipDefaults.rememberTooltipPositionProvider(
+                            TooltipAnchorPosition.Above
+                        ),
+                        state = rememberTooltipState(),
+                        tooltip = {
+                            PlainTooltip(
+                                containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                                contentColor = MaterialTheme.colorScheme.onSecondaryContainer
+                            ) {
+                                Text(
+                                    text = "Dependencies",
+                                    style = MaterialTheme.typography.labelMedium
+                                )
+                            }
+                        }
                     ) {
-                        Icon(
-                            painter = painterResource(Res.drawable.rule_24px),
-                            contentDescription = "Dependencies",
-                            modifier = Modifier.size(24.dp),
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
+                        IconButton(
+                            onClick = onViewDependencies,
+                            modifier = Modifier.size(40.dp).clip(CircleShape).clipToBounds()
+                                .pointerHoverIcon(PointerIcon.Hand)
+                        ) {
+                            Icon(
+                                painter = painterResource(Res.drawable.rule_24px),
+                                contentDescription = null,
+                                modifier = Modifier.size(24.dp),
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
                     }
                 }
             }
         }
     }
 }
-
 
 @Composable
 fun ModVersionDependenciesContent(

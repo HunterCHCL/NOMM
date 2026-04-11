@@ -135,15 +135,38 @@ fun MainNavigationRail(
 }
 
 fun launchNuclearOption() {
-    val exeFile = File(SettingsManager.gameFolder, "NuclearOption.exe")
-    if (exeFile.exists()) {
-        scope.launch(Dispatchers.IO) {
-            try {
+    scope.launch(Dispatchers.IO) {
+        val appId = "2168680"
+        val steamUri = "steam://rungameid/$appId"
+
+        val os = System.getProperty("os.name").lowercase()
+        var success = false
+
+        try {
+            when {
+                os.contains("win") -> {
+                    ProcessBuilder("cmd.exe", "/c", "start", "", steamUri).start()
+                    success = true
+                }
+                os.contains("mac") -> {
+                    ProcessBuilder("open", steamUri).start()
+                    success = true
+                }
+                else -> {
+                    ProcessBuilder("xdg-open", steamUri).start()
+                    success = true
+                }
+            }
+        } catch (e: Exception) {
+            println("Steam protocol launch failed: ${e.message}")
+        }
+        
+        if (!success) {
+            val exeFile = File(SettingsManager.gameFolder, "NuclearOption.exe")
+            if (exeFile.exists()) {
                 ProcessBuilder(exeFile.absolutePath)
                     .directory(exeFile.parentFile)
                     .start()
-            } catch (e: Exception) {
-                e.printStackTrace()
             }
         }
     }
@@ -162,6 +185,5 @@ private fun RailDestination(
         onClick = onClick,
         icon = { Icon(painterResource(drawableResource), null, modifier = Modifier.size(40.dp)) },
         label = { Text(label) },
-
         )
 }

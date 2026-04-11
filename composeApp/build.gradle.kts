@@ -1,19 +1,29 @@
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 
 plugins {
-    
     alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.composeMultiplatform)
     alias(libs.plugins.composeCompiler)
     alias(libs.plugins.composeHotReload)
-
     alias(libs.plugins.kotlin.serialization)
+    alias(libs.plugins.buildkonfig)
 }
+
+val appVersion = "3.1.0"
 
 java {
     toolchain {
         languageVersion.set(JavaLanguageVersion.of(21))
         vendor.set(JvmVendorSpec.JETBRAINS)
+    }
+}
+
+buildkonfig {
+    packageName = "com.combat.nomm"
+
+    defaultConfigs {
+        objectName = "BuildKonfig"
+        buildConfigField(com.codingfeline.buildkonfig.compiler.FieldSpec.Type.STRING, "VERSION", appVersion)
     }
 }
 
@@ -31,7 +41,6 @@ kotlin {
             implementation(libs.compose.ui)
             implementation(libs.compose.components.resources)
             implementation(libs.compose.uiToolingPreview)
-            implementation(projects.shared)
             implementation(libs.androidx.lifecycle.runtimeCompose)
             implementation(libs.androidx.lifecycle.viewmodelCompose)
             implementation(libs.kotlinx.serialization.json)
@@ -46,8 +55,6 @@ kotlin {
 
             implementation(libs.compose.colorpicker)
             implementation(libs.materialKolor)
-
-            
             implementation("org.slf4j:slf4j-simple:2.0.17")
         }
         commonTest.dependencies {
@@ -60,7 +67,7 @@ kotlin {
             implementation(libs.jetbrains.navigation3.ui)
             implementation(libs.androidx.lifecycle.viewmodelCompose)
             implementation(libs.androidx.lifecycle.runtimeCompose)
-            
+
             implementation("net.sf.sevenzipjbinding:sevenzipjbinding:16.02-2.01")
             implementation("net.sf.sevenzipjbinding:sevenzipjbinding-all-platforms:16.02-2.01")
         }
@@ -70,25 +77,19 @@ kotlin {
 compose.desktop {
     application {
         mainClass = "com.combat.nomm.MainKt"
-
-        
         nativeDistributions {
+            targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb, TargetFormat.Rpm)
 
-            targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
-
-            packageVersion = "3.0.0"
+            packageVersion = appVersion
             packageName = "Nuclear Option Mod Manager"
             vendor = "Combat"
             description = "A Mod Manager For Nuclear Option"
-
-
 
             windows {
                 dirChooser = true
                 perUserInstall = true
                 shortcut = true
                 menu = true
-                
                 menuGroup = "Combat"
                 iconFile = project.file("../icons/iconico.ico")
                 upgradeUuid = "fdac94b6-2774-4802-96c4-67ada2e62a57"

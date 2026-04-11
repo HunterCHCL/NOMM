@@ -51,6 +51,6 @@ object NetworkClient {
         }.getOrElse { e ->
             e.printStackTrace()
             null
-        }
+        }?.distinctBy { it.id }
     }
 }

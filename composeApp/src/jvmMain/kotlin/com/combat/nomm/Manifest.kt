@@ -116,7 +116,7 @@ fun fetchFakeManifest(): List<Extension> {
                 version = Version(1, v, 0),
                 category = "Release",
                 type = "Mod",
-                gameVersion = "0.31",
+                gameVersion = "0.33",
                 downloadUrl = "https://cdn.ex.com/$author/$pkgId-$v.zip",
                 hash = fastHash,
                 extends = null,
