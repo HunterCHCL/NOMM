@@ -107,7 +107,6 @@ object RepoMods {
         val dir = File(disabledFolder, id)
 
         if (dir.exists()) dir.deleteRecursively()
-        if (!dir.mkdirs()) return
 
         Installer.installMod(extension.id, targetArtifact.downloadUrl, dir) {
             val metaData = ModMeta(

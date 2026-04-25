@@ -29,6 +29,9 @@ object NetworkClient {
         install(UserAgent) {
             agent = "NOMM-Updater/1.0"
         }
+        install(HttpRedirect) {
+            checkHttpMethod = false
+        }
     }
 
     suspend fun fetchManifest(url: String): List<Extension>? = withContext(Dispatchers.IO) {

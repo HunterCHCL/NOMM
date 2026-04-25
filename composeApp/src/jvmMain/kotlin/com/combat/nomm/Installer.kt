@@ -45,6 +45,7 @@ object Installer {
                 } catch (e: Exception) {
                     e.printStackTrace()
                     if (e is CancellationException) throw e
+                    if (!isBepInEx) dir.deleteRecursively()
                     updateState(modId, TaskState(TaskState.Phase.EXTRACTING, null, e.localizedMessage), isBepInEx)
                 } finally {
                     clearStatus(modId, isBepInEx)
