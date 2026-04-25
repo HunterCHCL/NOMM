@@ -89,7 +89,7 @@ object Installer {
                 }
                 val bytes = response.readRawBytes()
                 if (bytes.isEmpty()) {
-                    throw DownloadHttpException(status.value, "Empty response body (0 bytes)", url)
+                    throw EmptyResponseException(url)
                 }
                 return bytes
             } catch (e: CancellationException) {
@@ -166,15 +166,15 @@ object Installer {
     private fun buildErrorNotification(e: Exception, url: String, modId: String): Pair<String, String> {
         val host = runCatching { java.net.URI(url).host ?: url }.getOrDefault(url)
         return when {
+            e is EmptyResponseException ->
+                "Download failed: Empty response" to
+                "Mod: $modId\nURL: $url\n\nThe server returned an empty file. The release asset may have been uploaded incorrectly."
             e is DownloadHttpException && e.code == 403 ->
                 "Download failed: Access denied (HTTP 403)" to
                 "Mod: $modId\nURL: $url\n\nThe server rejected the request. Your IP may be rate-limited or the file requires authentication."
             e is DownloadHttpException && e.code == 404 ->
                 "Download failed: File not found (HTTP 404)" to
                 "Mod: $modId\nURL: $url\n\nThe download link is broken or the release was deleted. Try checking for an updated version."
-            e is DownloadHttpException && e.code == 200 ->
-                "Download failed: Empty response" to
-                "Mod: $modId\nURL: $url\n\nThe server returned an empty file. The release asset may have been uploaded incorrectly."
             e is DownloadHttpException && e.code in 500..599 ->
                 "Download failed: Server error (HTTP ${e.code})" to
                 "Mod: $modId\nURL: $url\n\nThe download server is temporarily unavailable (${e.description}). Please try again later."
@@ -218,4 +218,7 @@ data class TaskState(
 }
 
 private class DownloadHttpException(val code: Int, val description: String, val url: String)
-    : Exception("HTTP $code $description")
+    : Exception("HTTP $code $description — $url")
+
+private class EmptyResponseException(val url: String)
+    : Exception("Empty response body from $url")
