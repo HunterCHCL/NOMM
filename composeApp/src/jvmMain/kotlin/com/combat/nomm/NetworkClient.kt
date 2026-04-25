@@ -51,6 +51,10 @@ object NetworkClient {
             }
         }.getOrElse { e ->
             e.printStackTrace()
+            ErrorNotifications.push(
+                "Failed to fetch mod list",
+                "URL: $url\n${e.javaClass.simpleName}: ${e.localizedMessage}\n\nUsing cached manifest. Check your internet connection and try refreshing."
+            )
             null
         }?.distinctBy { it.id }
     }

@@ -7,13 +7,16 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.PointerIcon
+import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.platform.ClipEntry
 import androidx.compose.ui.platform.LocalClipboard
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberNavBackStack
@@ -21,7 +24,12 @@ import androidx.navigation3.ui.NavDisplay
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import nuclearoptionmodmanager.composeapp.generated.resources.Res
+import nuclearoptionmodmanager.composeapp.generated.resources.close_24px
+import nuclearoptionmodmanager.composeapp.generated.resources.warning_24px
+import org.jetbrains.compose.resources.painterResource
 import java.awt.datatransfer.StringSelection
 
 const val appName = "Nuclear Option Mod Manager"
@@ -140,8 +148,84 @@ fun App() {
                         }
                     )
                 }
+
+                // Error toast overlay — bottom-left corner
+                val errorNotifications by ErrorNotifications.notifications.collectAsState()
+                if (errorNotifications.isNotEmpty()) {
+                    Column(
+                        modifier = Modifier
+                            .align(Alignment.BottomStart)
+                            .padding(16.dp)
+                            .width(400.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        errorNotifications.forEach { toast ->
+                            key(toast.id) {
+                                ErrorToastCard(toast)
+                            }
+                        }
+                    }
+                }
             }
         }
     }
 
+@Composable
+private fun ErrorToastCard(toast: ErrorNotifications.ErrorToast) {
+    LaunchedEffect(toast.id) {
+        delay(10_000)
+        ErrorNotifications.dismiss(toast.id)
+    }
 
+    val errorBg = Color(0xFFFFEBEE)
+    val errorFg = Color(0xFFB71C1C)
+
+    Surface(
+        color = errorBg,
+        shape = MaterialTheme.shapes.medium,
+        shadowElevation = 6.dp,
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.Top
+        ) {
+            Icon(
+                painter = painterResource(Res.drawable.warning_24px),
+                contentDescription = null,
+                tint = errorFg,
+                modifier = Modifier.size(18.dp).padding(top = 2.dp)
+            )
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                Text(
+                    text = toast.title,
+                    color = errorFg,
+                    style = MaterialTheme.typography.labelLarge,
+                    fontWeight = FontWeight.Bold
+                )
+                SelectionContainer {
+                    Text(
+                        text = toast.detail,
+                        color = errorFg,
+                        style = MaterialTheme.typography.labelSmall
+                    )
+                }
+            }
+            IconButton(
+                onClick = { ErrorNotifications.dismiss(toast.id) },
+                modifier = Modifier.size(20.dp).pointerHoverIcon(PointerIcon.Hand)
+            ) {
+                Icon(
+                    painter = painterResource(Res.drawable.close_24px),
+                    contentDescription = "Dismiss",
+                    tint = errorFg,
+                    modifier = Modifier.size(16.dp)
+                )
+            }
+        }
+    }
+}
