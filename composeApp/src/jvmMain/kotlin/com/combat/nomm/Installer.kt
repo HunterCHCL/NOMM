@@ -45,7 +45,9 @@ object Installer {
                 } catch (e: Exception) {
                     e.printStackTrace()
                     if (e is CancellationException) throw e
-                    if (!isBepInEx) dir.deleteRecursively()
+                    if (!isBepInEx && !dir.deleteRecursively()) {
+                        println("NOMM: failed to clean up directory ${dir.absolutePath}")
+                    }
                     updateState(modId, TaskState(TaskState.Phase.EXTRACTING, null, e.localizedMessage), isBepInEx)
                 } finally {
                     clearStatus(modId, isBepInEx)
