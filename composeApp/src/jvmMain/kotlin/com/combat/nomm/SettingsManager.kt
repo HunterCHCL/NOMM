@@ -26,6 +26,7 @@ data class Configuration(
     val paletteStyle: PaletteStyle = PaletteStyle.Expressive,
     val contrast: Contrast = Contrast.Default,
     val fakeManifest: Boolean = false,
+    val allowProxyDownloadWithoutSslCertification: Boolean = false,
     val manifestUrl: String = "https://kopterbuzz.github.io/NOMNOM/manifest/manifest.json",
     val cachedManifest: Manifest = emptyList(),
     val hueValue: Float = 0.3f,

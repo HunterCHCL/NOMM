@@ -98,6 +98,15 @@ fun SettingsScreen() {
                     placeholder = "",
                 )
                 SettingsSwitchRow(
+                    label = "Allow Proxy Download(Disables SSL Certification)",
+                    subLabel = "Disabled by default. Enable only if your proxy or network intercepts HTTPS certificates.",
+                    checked = currentConfig.allowProxyDownloadWithoutSslCertification,
+                    onCheckedChange = { newValue ->
+                        SettingsManager.updateConfig(
+                            currentConfig.copy(allowProxyDownloadWithoutSslCertification = newValue)
+                        )
+                    })
+                SettingsSwitchRow(
                     label = "Fake Manifest",
                     subLabel = "Generates Fake Manifest Data useful to test the UI better.",
                     checked = currentConfig.fakeManifest,

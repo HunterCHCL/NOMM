@@ -17,13 +17,52 @@ import java.net.InetSocketAddress
 import java.net.Proxy
 import java.net.ProxySelector
 import java.net.URI
+import javax.net.ssl.TrustManager
+import javax.net.ssl.X509TrustManager
+import java.security.cert.X509Certificate
 
 object NetworkClient {
     private val proxyConfig: ProxyConfig? = detectSystemProxy()
 
-    val client = HttpClient(CIO) {
+    // 创建一个信任所有证书的 TrustManager (仅用于开发/测试环境)
+    private val trustAllCerts = arrayOf<TrustManager>(
+        object : X509TrustManager {
+            override fun checkClientTrusted(chain: Array<X509Certificate>, authType: String) {}
+            override fun checkServerTrusted(chain: Array<X509Certificate>, authType: String) {}
+            override fun getAcceptedIssuers(): Array<X509Certificate> = emptyArray()
+        }
+    )
+
+    @Volatile
+    private var sslBypassEnabled = SettingsManager.config.value.allowProxyDownloadWithoutSslCertification
+
+    @Volatile
+    private var internalClient = buildClient(sslBypassEnabled)
+
+    val client: HttpClient
+        get() {
+            val expected = SettingsManager.config.value.allowProxyDownloadWithoutSslCertification
+            if (expected != sslBypassEnabled) {
+                synchronized(this) {
+                    val refreshed = SettingsManager.config.value.allowProxyDownloadWithoutSslCertification
+                    if (refreshed != sslBypassEnabled) {
+                        internalClient.close()
+                        sslBypassEnabled = refreshed
+                        internalClient = buildClient(refreshed)
+                    }
+                }
+            }
+            return internalClient
+        }
+
+    private fun buildClient(allowInsecureSsl: Boolean): HttpClient = HttpClient(CIO) {
         engine {
             proxyConfig?.let { proxy = it }
+            if (allowInsecureSsl) {
+                https {
+                    trustManager = trustAllCerts.firstOrNull() as? X509TrustManager
+                }
+            }
         }
         install(ContentNegotiation) {
             json(Json {
@@ -82,7 +121,7 @@ private fun detectSystemProxy(): ProxyConfig? {
         when (proxy.type()) {
             Proxy.Type.HTTP -> {
                 println("NOMM: Detected HTTP proxy: ${addr.hostName}:${addr.port}")
-                ProxyBuilder.http("http://${addr.hostName}:${addr.port}")
+                ProxyBuilder.http(Url("http://${addr.hostName}:${addr.port}"))
             }
             Proxy.Type.SOCKS -> {
                 println("NOMM: Detected SOCKS proxy: ${addr.hostName}:${addr.port}")
